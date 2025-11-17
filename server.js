@@ -32,6 +32,12 @@ app.use((req, res, next) => {
 
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
 
+// Expose Swagger JSON
+app.get("/api-docs.json", (req, res) => {
+  res.setHeader("Content-Type", "application/json");
+  res.send(swaggerSpecs);
+});
+
 const limiters = {
   One_sec: rateLimit({
     limit: 1,

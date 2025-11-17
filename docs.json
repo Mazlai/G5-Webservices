@@ -1,0 +1,688 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Books API",
+    "version": "1.0.0",
+    "description": "A simple REST API for managing books with best practices including versioning, pagination, and HATEOAS"
+  },
+  "servers": [
+    { "url": "http://localhost:3000", "description": "Development server" }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "JWT token for authentication"
+      }
+    },
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "properties": {
+          "message": { "type": "string", "example": "Error message" },
+          "code": { "type": "string", "example": "ERROR_CODE" }
+        }
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "The unique identifier of the user",
+            "example": 1
+          },
+          "username": {
+            "type": "string",
+            "description": "The username",
+            "example": "user"
+          },
+          "email": {
+            "type": "string",
+            "description": "The user email",
+            "example": "user@example.com"
+          },
+          "firstName": {
+            "type": "string",
+            "description": "The user first name",
+            "example": "John"
+          },
+          "lastName": {
+            "type": "string",
+            "description": "The user last name",
+            "example": "Doe"
+          },
+          "role": {
+            "type": "string",
+            "description": "The user role",
+            "example": "admin"
+          }
+        }
+      },
+      "Book": {
+        "type": "object",
+        "required": ["title", "author"],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "The unique identifier of the book",
+            "example": 1
+          },
+          "title": {
+            "type": "string",
+            "description": "The title of the book",
+            "example": "Le Seigneur des Anneaux"
+          },
+          "author": {
+            "type": "string",
+            "description": "The author of the book",
+            "example": "J.R.R. Tolkien"
+          }
+        }
+      },
+      "BookResponse": {
+        "type": "object",
+        "properties": {
+          "data": { "$ref": "#/components/schemas/Book" },
+          "links": {
+            "type": "object",
+            "properties": {
+              "self": { "type": "string", "example": "/api/v1/books/1" },
+              "all": { "type": "string", "example": "/api/v1/books" }
+            }
+          }
+        }
+      },
+      "BooksListResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Book" }
+          },
+          "pagination": {
+            "type": "object",
+            "properties": {
+              "limit": { "type": "integer", "example": 10 },
+              "offset": { "type": "integer", "example": 0 },
+              "total": { "type": "integer", "example": 25 }
+            }
+          },
+          "links": {
+            "type": "object",
+            "properties": {
+              "self": {
+                "type": "string",
+                "example": "/api/v1/books?limit=10&offset=0"
+              },
+              "next": {
+                "type": "string",
+                "example": "/api/v1/books?limit=10&offset=10"
+              },
+              "prev": {
+                "type": "string",
+                "example": "/api/v1/books?limit=10&offset=0"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "security": [{ "bearerAuth": [] }],
+  "paths": {
+    "/api/v1/auth/login": {
+      "post": {
+        "summary": "User login",
+        "description": "Authenticate user with username and password, return JWT token",
+        "tags": ["Authentication"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["username", "password"],
+                "properties": {
+                  "username": { "type": "string", "example": "user" },
+                  "password": { "type": "string", "example": "password123" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful, returns JWT token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": { "type": "string" },
+                    "token": { "type": "string" },
+                    "user": { "$ref": "#/components/schemas/User" }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing credentials",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/me": {
+      "get": {
+        "summary": "Get current user profile",
+        "description": "Retrieve the profile of the currently authenticated user",
+        "security": [{ "bearerAuth": [] }],
+        "tags": ["Authentication"],
+        "responses": {
+          "200": {
+            "description": "User profile retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "user": { "$ref": "#/components/schemas/User" }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Missing or invalid token",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/logout": {
+      "post": {
+        "summary": "User logout",
+        "description": "Logout the current user (optional endpoint, mainly for frontend use)",
+        "security": [{ "bearerAuth": [] }],
+        "tags": ["Authentication"],
+        "responses": {
+          "200": {
+            "description": "Logout successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": { "message": { "type": "string" } }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/books": {
+      "get": {
+        "summary": "Get all books",
+        "description": "Retrieve a paginated list of all books",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": { "type": "integer", "default": 10 },
+            "description": "Number of items per page"
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "schema": { "type": "integer", "default": 0 },
+            "description": "Number of items to skip"
+          }
+        ],
+        "tags": ["Books (v1)"],
+        "responses": {
+          "200": {
+            "description": "List of books with pagination",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/BooksListResponse" }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a new book",
+        "description": "Create a new book (admin access required)",
+        "security": [{ "bearerAuth": [] }],
+        "tags": ["Books (v1)"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["title", "author"],
+                "properties": {
+                  "title": { "type": "string", "example": "New Book" },
+                  "author": { "type": "string", "example": "Author Name" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Book created successfully",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/BookResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/books/{id}": {
+      "get": {
+        "summary": "Get a book by ID",
+        "description": "Retrieve a single book by its ID",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "The book ID"
+          }
+        ],
+        "tags": ["Books (v1)"],
+        "responses": {
+          "200": {
+            "description": "Book found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/BookResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "Book not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Update a book",
+        "description": "Update an existing book (admin access required)",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "The book ID"
+          }
+        ],
+        "tags": ["Books (v1)"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["title", "author"],
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "example": "Updated Book Title"
+                  },
+                  "author": { "type": "string", "example": "Updated Author" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Book updated successfully",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/BookResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Book not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a book",
+        "description": "Delete an existing book (admin access required)",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "The book ID"
+          }
+        ],
+        "tags": ["Books (v1)"],
+        "responses": {
+          "200": {
+            "description": "Book deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": { "type": "string" },
+                    "deleted": { "$ref": "#/components/schemas/Book" }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Book not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/books": {
+      "get": {
+        "summary": "Get all books",
+        "description": "Retrieve a paginated list of all books (v2 - enhanced)",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": { "type": "integer", "default": 10 },
+            "description": "Number of items per page"
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "schema": { "type": "integer", "default": 0 },
+            "description": "Number of items to skip"
+          }
+        ],
+        "tags": ["Books (v2)"],
+        "responses": {
+          "200": {
+            "description": "List of books with pagination",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/BooksListResponse" }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a new book",
+        "description": "Create a new book (admin access required)",
+        "security": [{ "bearerAuth": [] }],
+        "tags": ["Books (v2)"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["title", "author"],
+                "properties": {
+                  "title": { "type": "string", "example": "New Book" },
+                  "author": { "type": "string", "example": "Author Name" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Book created successfully",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/BookResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/books/{id}": {
+      "get": {
+        "summary": "Get a book by ID",
+        "description": "Retrieve a single book by its ID",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "The book ID"
+          }
+        ],
+        "tags": ["Books (v2)"],
+        "responses": {
+          "200": {
+            "description": "Book found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/BookResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "Book not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Update a book",
+        "description": "Update an existing book (admin access required)",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "The book ID"
+          }
+        ],
+        "tags": ["Books (v2)"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["title", "author"],
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "example": "Updated Book Title"
+                  },
+                  "author": { "type": "string", "example": "Updated Author" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Book updated successfully",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/BookResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Book not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a book",
+        "description": "Delete an existing book (admin access required)",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "The book ID"
+          }
+        ],
+        "tags": ["Books (v2)"],
+        "responses": {
+          "200": {
+            "description": "Book deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": { "type": "string" },
+                    "deleted": { "$ref": "#/components/schemas/Book" }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Book not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "tags": []
+}
