@@ -118,7 +118,6 @@ module.exports = function (app, limiters) {
    */
   app.post(
     link("books.v2.create"),
-    limiters.One_sec,
     requireAdminAccess,
     postBook
   );
@@ -228,7 +227,6 @@ module.exports = function (app, limiters) {
   app.delete(
     link("books.v2.delete", { id: ":id" }),
     limiters.One_sec,
-    requireAdminAccess,
     deleteBooks
   );
 };
