@@ -1,0 +1,25 @@
+// Données stockées en mémoire
+module.exports = [
+  { id: 1, title: "Le Seigneur des Anneaux", author: "J.R.R. Tolkien" },
+  { id: 2, title: "Dune", author: "Frank Herbert" },
+  { id: 3, title: "1984", author: "George Orwell" },
+  {
+    id: 4,
+    title: "Harry Potter à l'école des sorciers",
+    author: "J.K. Rowling",
+  },
+  { id: 5, title: "Le Trône de Fer", author: "George R.R. Martin" },
+  { id: 6, title: "Fondation", author: "Isaac Asimov" },
+  { id: 7, title: "Le Cycle de la Culture", author: "Iain M. Banks" },
+  { id: 8, title: "La Horde du Contrevent", author: "Alain Damasio" },
+  { id: 9, title: "Neuromancien", author: "William Gibson" },
+  { id: 10, title: "Les Robots", author: "Isaac Asimov" },
+  { id: 11, title: "Le Meilleur des Mondes", author: "Aldous Huxley" },
+  { id: 12, title: "Fahrenheit 451", author: "Ray Bradbury" },
+  { id: 13, title: "La Nuit des Temps", author: "René Barjavel" },
+  { id: 14, title: "Les Chroniques de Narnia", author: "C.S. Lewis" },
+  { id: 15, title: "Le Cycle des Robots", author: "Isaac Asimov" },
+  { id: 16, title: "La Route", author: "Cormac McCarthy" },
+  { id: 17, title: "Le Cycle de Dune", author: "Frank Herbert" },
+  { id: 18, title: "Les Cantos d'Hypérion", author: "Dan Simmons" },
+];
