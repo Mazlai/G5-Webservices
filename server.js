@@ -74,4 +74,7 @@ app.listen(PORT, () => {
   console.log(
     `API documentation available at http://localhost:${PORT}/api-docs`
   );
+  console.log(
+    `Swagger JSON available at http://localhost:${PORT}/api-docs.json`
+  );
 });

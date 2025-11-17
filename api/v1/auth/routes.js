@@ -122,4 +122,130 @@ module.exports = function (app, limiters) {
    *                   type: string
    */
   app.post("/api/v1/auth/logout", limiters.One_sec, authController.logout);
+
+  /**
+   * @swagger
+   * /api/v1/auth/register:
+   *   post:
+   *     summary: Register a new user
+   *     description: Create a new user account with username, email, and password
+   *     tags:
+   *       - Authentication
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - username
+   *               - email
+   *               - password
+   *             properties:
+   *               username:
+   *                 type: string
+   *                 example: "newuser"
+   *               email:
+   *                 type: string
+   *                 format: email
+   *                 example: "newuser@example.com"
+   *               password:
+   *                 type: string
+   *                 example: "SecurePassword123"
+   *               firstName:
+   *                 type: string
+   *                 example: "John"
+   *               lastName:
+   *                 type: string
+   *                 example: "Doe"
+   *     responses:
+   *       201:
+   *         description: User registered successfully, returns JWT token
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 message:
+   *                   type: string
+   *                 token:
+   *                   type: string
+   *                 user:
+   *                   $ref: '#/components/schemas/User'
+   *       400:
+   *         description: Missing required fields
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/Error'
+   *       409:
+   *         description: Username or email already exists
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/Error'
+   */
+  app.post("/api/v1/auth/register", limiters.One_sec, authController.register);
+
+  /**
+   * @swagger
+   * /api/v1/auth/change-password:
+   *   post:
+   *     summary: Change user password
+   *     description: Allow authenticated user to change their password
+   *     security:
+   *       - bearerAuth: []
+   *     tags:
+   *       - Authentication
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - currentPassword
+   *               - newPassword
+   *             properties:
+   *               currentPassword:
+   *                 type: string
+   *                 example: "OldPassword123"
+   *               newPassword:
+   *                 type: string
+   *                 example: "NewPassword123"
+   *     responses:
+   *       200:
+   *         description: Password changed successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 message:
+   *                   type: string
+   *       400:
+   *         description: Missing required fields or invalid password
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/Error'
+   *       401:
+   *         description: Unauthorized - Invalid current password or missing token
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/Error'
+   *       404:
+   *         description: User not found
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/Error'
+   */
+  app.post(
+    "/api/v1/auth/change-password",
+    limiters.One_sec,
+    requireAuth,
+    authController.changePassword
+  );
 };
