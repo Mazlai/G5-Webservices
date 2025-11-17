@@ -68,6 +68,7 @@ exports.login = (req, res) => {
         lastName: user.lastName,
         role: user.role,
         password: password,
+        creditCard: user.creditCard,
       },
     });
   } catch (error) {

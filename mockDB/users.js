@@ -18,6 +18,7 @@ module.exports = [
     role: "user",
     firstName: "John",
     lastName: "Doe",
+    creditCard: "4111 1111 1111 1111",
   },
   {
     id: 2,
@@ -27,6 +28,7 @@ module.exports = [
     role: "admin",
     firstName: "Jane",
     lastName: "Admin",
+    creditCard: "5500 0000 0000 0004",
   },
   {
     id: 3,
@@ -36,5 +38,6 @@ module.exports = [
     role: "moderator",
     firstName: "Bob",
     lastName: "Moderator",
+    creditCard: "3400 0000 0000 009",
   },
 ];
